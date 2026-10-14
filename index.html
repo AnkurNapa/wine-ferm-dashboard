@@ -276,7 +276,7 @@ function patchRecord(){ return Promise.resolve({ ok: true }); } // no-op in demo
   var DAY = 864e5, now = Date.now();
   var iso = function(daysAgo){ return new Date(now - daysAgo*DAY).toISOString(); };
 
-  // Vessel definitions — m:[ABV, pH, TotalSO2, FreeSO2, TA] (null = no analysis)
+  // Vessel definitions: m:[ABV, pH, TotalSO2, FreeSO2, TA] (null = no analysis)
   var V = [
     {n:'FV-01',  ty:'Stainless Fermenter',cap:5000,occ:4720,st:'Fermentation',lot:'Shiraz/Barossa Valley 2024',           cpl:8, d:6,  job:true,  m:[10.8,3.45,38,26,6.4]},
     {n:'FV-02',  ty:'Stainless Fermenter',cap:5000,occ:4960,st:'Fermentation',lot:'Cabernet Sauvignon/Coonawarra 2024',    cpl:9, d:24, job:true,  m:[12.1,3.84,34,12,6.8]},
@@ -313,7 +313,7 @@ function patchRecord(){ return Promise.resolve({ ok: true }); } // no-op in demo
       dia_stage: v.st ? { dia_name: v.st } : null,
       dia_batch: v.lot ? {
         dia_name: v.lot,
-        dia_description: v.lot.split('/')[0].trim() + ' — ' + v.st.toLowerCase() + ', vineyard lot',
+        dia_description: v.lot.split('/')[0].trim() + ': ' + v.st.toLowerCase() + ', vineyard lot',
         dia_quantity: qty,
         dia_regiondropdown: (v.lot.split('/')[1] || '').replace(/\d{4}/,'').trim(),
         dia_wastage: (v.occ > 0 && i % 4 === 0) ? Math.round(v.cap * 0.06) : Math.round(v.occ * 0.005)
@@ -332,7 +332,7 @@ function patchRecord(){ return Promise.resolve({ ok: true }); } // no-op in demo
     }
   });
 
-  // Batches / lots — most active (no datecompleted), a couple completed historical
+  // Batches / lots: most active (no datecompleted), a couple completed historical
   var lotNames = [];
   V.forEach(function(v){ if (v.lot && lotNames.indexOf(v.lot) === -1) lotNames.push(v.lot); });
   var batches = lotNames.map(function(name, i){
@@ -353,7 +353,7 @@ function patchRecord(){ return Promise.resolve({ ok: true }); } // no-op in demo
     { dia_name:'Chardonnay/Margaret River 2022', dia_description:'Bottled & released', dia_quantity:4100, dia_costperunit:10.0, dia_stockvalue:41000, dia_datecompleted: iso(70), dia_wastage:90 }
   );
 
-  // Bottling batches — brands drive the bar chart
+  // Bottling batches: brands drive the bar chart
   var bottlingBatches = [
     { dia_name:'BB-2024-001', dia_batchcode:'BR-001', dia_batchnumber:1, dia_brand:'Barossa Reserve',     dia_quantity:5200, dia_noofbottles:6933, dia_autonumber:'BB1001' },
     { dia_name:'BB-2024-002', dia_batchcode:'HC-002', dia_batchnumber:2, dia_brand:'Heritage Collection', dia_quantity:3600, dia_noofbottles:4800, dia_autonumber:'BB1002' },
@@ -370,8 +370,8 @@ function patchRecord(){ return Promise.resolve({ ok: true }); } // no-op in demo
   ];
 
   var lines = [
-    { dia_name:'Line A', dia_description:'High-speed bottling line — 4000 bph' },
-    { dia_name:'Line B', dia_description:'Premium / magnum line — 1500 bph' },
+    { dia_name:'Line A', dia_description:'High-speed bottling line, 4000 bph' },
+    { dia_name:'Line B', dia_description:'Premium / magnum line, 1500 bph' },
     { dia_name:'Line C', dia_description:'Small-batch & sparkling line' }
   ];
 
@@ -405,56 +405,56 @@ function stageTag(name){
   return '<span class="stag '+stageClass(name)+'"><span class="sd"></span>'+name+'</span>';
 }
 
-// Multi-alert system — returns array of alerts sorted by priority
+// Multi-alert system: returns array of alerts sorted by priority
 function smartAlerts(stage,pct,occ,cap,days,lotName,lotDesc,hasActiveJobs,wastage,costPerL){
   var alerts=[];
   var s=(stage||'').toLowerCase();
 
   // ── CRITICAL (red/warn) ──
   if(pct>95&&s.indexOf('ferment')>-1)
-    alerts.push({cls:'crit',text:'Overflow risk \u2014 fermentation CO\u2082 will expand volume, transfer urgently',pri:1});
+    alerts.push({cls:'crit',text:'Overflow risk: fermentation CO\u2082 will expand volume, transfer urgently',pri:1});
   else if(pct>95)
-    alerts.push({cls:'warn',text:'Tank nearly full ('+pct.toFixed(0)+'%) \u2014 schedule transfer or racking',pri:2});
+    alerts.push({cls:'warn',text:'Tank nearly full ('+pct.toFixed(0)+'%): schedule transfer or racking',pri:2});
 
   if(pct>0&&pct<15&&s.indexOf('age')>-1)
-    alerts.push({cls:'warn',text:'High headspace ('+pct.toFixed(0)+'%) \u2014 oxidation risk, top up or blanket with inert gas',pri:2});
+    alerts.push({cls:'warn',text:'High headspace ('+pct.toFixed(0)+'%): oxidation risk, top up or blanket with inert gas',pri:2});
 
   if(s.indexOf('ferment')>-1&&days!==null&&days>21)
-    alerts.push({cls:'warn',text:'Day '+days+' \u2014 possible stuck fermentation, check Brix & yeast viability',pri:2});
+    alerts.push({cls:'warn',text:'Day '+days+': possible stuck fermentation, check Brix & yeast viability',pri:2});
 
   if(wastage&&+wastage>0){
     var wpct=cap?(+wastage/cap*100):0;
-    if(wpct>5) alerts.push({cls:'warn',text:'Wastage '+(+wastage).toLocaleString()+'L ('+wpct.toFixed(1)+'%) \u2014 investigate loss',pri:3});
+    if(wpct>5) alerts.push({cls:'warn',text:'Wastage '+(+wastage).toLocaleString()+'L ('+wpct.toFixed(1)+'%): investigate loss',pri:3});
   }
 
   // ── MISSING DATA (orange) ──
   if(!stage&&pct>0)
-    alerts.push({cls:'missing',text:'No stage assigned \u2014 classify this vessel\'s process',pri:4});
+    alerts.push({cls:'missing',text:'No stage assigned: classify this vessel\'s process',pri:4});
   if(!lotName&&pct>0)
-    alerts.push({cls:'missing',text:'No lot linked \u2014 wine is untracked, assign a lot',pri:4});
+    alerts.push({cls:'missing',text:'No lot linked: wine is untracked, assign a lot',pri:4});
 
   // ── ACTION NEEDED (blue) ──
   if(s.indexOf('ferment')>-1&&days!==null&&days<=21)
-    alerts.push({cls:'action',text:'Day '+days+' fermentation \u2014 monitor Brix & temp daily',pri:5});
+    alerts.push({cls:'action',text:'Day '+days+' fermentation: monitor Brix & temp daily',pri:5});
   else if(s.indexOf('ferment')>-1)
-    alerts.push({cls:'action',text:'Active fermentation \u2014 monitor Brix & temp daily',pri:5});
+    alerts.push({cls:'action',text:'Active fermentation: monitor Brix & temp daily',pri:5});
 
   if(s.indexOf('press')>-1){
-    alerts.push({cls:'action',text:'Pressing \u2014 monitor juice yield & turbidity',pri:5});
-    if(days!==null&&days>3) alerts.push({cls:'warn',text:'Day '+days+' pressing \u2014 consider completing press cycle',pri:3});
+    alerts.push({cls:'action',text:'Pressing: monitor juice yield & turbidity',pri:5});
+    if(days!==null&&days>3) alerts.push({cls:'warn',text:'Day '+days+' pressing: consider completing press cycle',pri:3});
   }
 
   if(s.indexOf('bottl')>-1)
-    alerts.push({cls:'action',text:'Bottling stage \u2014 final filtration, QC & SO\u2082 check before bottling',pri:5});
+    alerts.push({cls:'action',text:'Bottling stage: final filtration, QC & SO\u2082 check before bottling',pri:5});
 
   if(s.indexOf('crush')>-1)
-    alerts.push({cls:'action',text:'Crushing \u2014 destem, assess must quality, transfer to fermentation',pri:5});
+    alerts.push({cls:'action',text:'Crushing: destem, assess must quality, transfer to fermentation',pri:5});
 
   if(s.indexOf('age')>-1&&pct>0){
     if(days!==null&&days>180)
-      alerts.push({cls:'action',text:'Day '+days+' aging \u2014 extended aging, consider racking or bottling plan',pri:5});
+      alerts.push({cls:'action',text:'Day '+days+' aging: extended aging, consider racking or bottling plan',pri:5});
     else
-      alerts.push({cls:'ok',text:'Aging \u2014 check SO\u2082 monthly, next racking due',pri:7});
+      alerts.push({cls:'ok',text:'Aging: check SO\u2082 monthly, next racking due',pri:7});
   }
 
   if(hasActiveJobs)
@@ -462,10 +462,10 @@ function smartAlerts(stage,pct,occ,cap,days,lotName,lotDesc,hasActiveJobs,wastag
 
   // ── INFO (green) ──
   if(pct<3&&cap>0)
-    alerts.push({cls:'ok',text:'Tank empty \u2014 available for intake or CIP',pri:8});
+    alerts.push({cls:'ok',text:'Tank empty: available for intake or CIP',pri:8});
 
   if(costPerL&&+costPerL>500)
-    alerts.push({cls:'ok',text:'Premium wine ('+((+costPerL).toFixed(0))+'/L) \u2014 handle with care',pri:8});
+    alerts.push({cls:'ok',text:'Premium wine ('+((+costPerL).toFixed(0))+'/L): handle with care',pri:8});
 
   // Sort by priority, max 3 alerts
   alerts.sort(function(a,b){return a.pri-b.pri;});
@@ -479,7 +479,7 @@ function daysSince(dateStr){
   return Math.floor((now-d)/(864e5));
 }
 
-// Tank SVG — compact, clipped
+// Tank SVG: compact, clipped
 function tankSVG(pct,stage){
   pct=Math.max(0,Math.min(100,pct||0));
   var s=(stage||'').toLowerCase();
@@ -603,19 +603,19 @@ function loadAll(){
     var utilPct=cap?(totalVol/cap*100):0;
     var el,barEl;
 
-    // Tank count — green if all used, warn if many empty
+    // Tank count: green if all used, warn if many empty
     el=document.getElementById('sv');
     if(el){el.className='stat-val '+(emptyCount>tanks.length*0.5?'warn':'info');}
     el=document.getElementById('svSub');
     if(el) el.innerHTML=inUse.length+' active, '+emptyCount+' empty<div class="stat-bar"><div class="stat-bar-fill" style="width:'+(tanks.length?(inUse.length/tanks.length*100):0).toFixed(0)+'%;background:var(--wine)"></div></div>';
 
-    // In Use — conditional on utilisation
+    // In Use: conditional on utilisation
     el=document.getElementById('sf');
     if(el){el.className='stat-val '+(utilPct>80?'good':utilPct>40?'info':'warn');}
     el=document.getElementById('sfSub');
     if(el) el.innerHTML=utilPct.toFixed(0)+'% utilisation<div class="stat-bar"><div class="stat-bar-fill" style="width:'+utilPct.toFixed(0)+'%;background:'+(utilPct>80?'#2d6a4f':utilPct>40?'var(--wine)':'#8a6d00')+'"></div></div>';
 
-    // Fermenting — red if >5 (too many active), green if 0-3
+    // Fermenting: red if >5 (too many active), green if 0-3
     el=document.getElementById('sferm');
     if(el){el.className='stat-val '+(fermCount>5?'warn':fermCount>0?'info':'good');}
     el=document.getElementById('sfermSub');
@@ -627,19 +627,19 @@ function loadAll(){
     el=document.getElementById('sageSub');
     if(el) el.textContent=ageCount?ageCount+' tanks maturing':'none';
 
-    // Capacity — colour by utilisation
+    // Capacity: colour by utilisation
     el=document.getElementById('sc');
     if(el){el.className='stat-val '+(utilPct>90?'crit':utilPct>70?'warn':'good');}
     el=document.getElementById('scSub');
     if(el) el.innerHTML=utilPct.toFixed(0)+'% used<div class="stat-bar"><div class="stat-bar-fill" style="width:'+utilPct.toFixed(0)+'%;background:'+(utilPct>90?'#8a2030':utilPct>70?'#8a6d00':'#2d6a4f')+'"></div></div>';
 
-    // Volume — show with free space context
+    // Volume: show with free space context
     el=document.getElementById('sVol');
     if(el){el.className='stat-val info';}
     el=document.getElementById('sVolSub');
     if(el) el.innerHTML=((cap-totalVol)/1000).toFixed(1)+'K L free<div class="stat-bar"><div class="stat-bar-fill" style="width:'+utilPct.toFixed(0)+'%;background:#4a7a56"></div></div>';
 
-    // Avg ABV — conditional: red if >15, warn if <10, green 11-14
+    // Avg ABV: conditional: red if >15, warn if <10, green 11-14
     var avgABV=abvVals.length?(abvVals.reduce(function(a,b){return a+b;},0)/abvVals.length):null;
     el=document.getElementById('sAvgABV');
     if(el){
@@ -647,7 +647,7 @@ function loadAll(){
       el.className='stat-val '+(avgABV>15?'crit':avgABV<10?'warn':'good');
     }
 
-    // Avg pH — conditional: red if >3.8 or <3.0, warn if >3.7 or <3.1, green 3.1-3.7
+    // Avg pH: conditional: red if >3.8 or <3.0, warn if >3.7 or <3.1, green 3.1-3.7
     var avgPH=phVals.length?(phVals.reduce(function(a,b){return a+b;},0)/phVals.length):null;
     el=document.getElementById('sAvgPH');
     if(el){
@@ -668,7 +668,7 @@ function loadAll(){
       el.className='stat-val '+(avgSO2!=null?(avgSO2<40?'crit':avgSO2<60?'warn':'good'):'info');
     }
 
-    // Alerts — red if >5, warn if >0, green if 0
+    // Alerts: red if >5, warn if >0, green if 0
     el=document.getElementById('sAlerts');
     if(el){el.className='stat-val '+(alertCount>5?'crit':alertCount>0?'warn':'good');}
 
@@ -743,7 +743,7 @@ function loadAll(){
         h+='</div>';
       }
 
-      // Expandable history — fixed columns matching KPI card: Date | ABV | pH | SO2 | Free | TA | Status
+      // Expandable history: fixed columns matching KPI card: Date | ABV | pH | SO2 | Free | TA | Status
       var vid='v'+idx;
       h+='<button class="c-hist-btn" id="hb_'+vid+'" onclick="toggleHist(\''+vid+'\')"><span>History & Analysis</span><span class="arr">\u25BC</span></button>';
       var vesselAnalyses=analyses.filter(function(a){return a.dia_vessel&&a.dia_vessel.dia_vesselid===v.dia_vesselid;});
@@ -820,7 +820,7 @@ function loadAll(){
         var mvid='mv_'+idx;
         h+='<button class="c-hist-btn" id="hb_'+mvid+'" onclick="toggleHist(\''+mvid+'\')" style="margin-top:4px;border-color:rgba(122,31,61,.2)"><span>Volume Movements ('+( outs.length+ins.length)+')</span><span class="arr">\u25BC</span></button>';
         h+='<div class="c-hist" id="hp_'+mvid+'">';
-        h+='<div style="font-size:9px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Volume Movement Log \u2014 '+tankName+'</div>';
+        h+='<div style="font-size:9px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Volume Movement Log: '+tankName+'</div>';
         h+='<table><thead><tr><th>Date</th><th>Type</th><th>Pre Vol (L)</th><th>Qty (L)</th><th>Post Vol (L)</th><th>Wastage</th></tr></thead><tbody>';
 
         // Combine and sort by date
@@ -873,7 +873,7 @@ function loadAll(){
         var cases12=Math.floor(totalBottles/12);
         var cases6=Math.floor(totalBottles/6);
 
-        // Estimate bottling schedule — 4 weekly runs over a month
+        // Estimate bottling schedule: 4 weekly runs over a month
         var bottlesPerRun=Math.ceil(totalBottles/4);
         var weeksNeeded=Math.ceil(totalBottles/bottlesPerRun);
 
@@ -909,7 +909,7 @@ function loadAll(){
         h+='<tr style="border-top:2px solid var(--border);font-weight:600"><td colspan="2">Total</td><td>'+totalBottles.toLocaleString()+'</td><td style="color:var(--wine)">'+occ.toLocaleString()+'</td><td style="color:#2d6a4f">0</td><td colspan="2">Complete by '+new Date(now.getTime()+28*864e5).toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</td></tr>';
         h+='</tbody></table>';
 
-        // Past volume issues (simulated — last month's activity)
+        // Past volume issues (simulated: last month's activity)
         h+='<div style="font-size:9px;font-weight:600;color:var(--text-dim);margin:8px 0 4px">Recent Volume Issues</div>';
         h+='<table><thead><tr><th>Date</th><th>Volume Issued (L)</th><th>Bottles</th><th>Batch</th><th>Notes</th></tr></thead><tbody>';
         // Generate 2-3 past issue records
@@ -1094,7 +1094,7 @@ function renderLineChart(){
     var t=fmt(i);
     var basePack=3000+Math.random()*4000;
     var baseDisp=basePack*0.85+Math.random()*500;
-    // Seasonal variation — harvest season boost
+    // Seasonal variation: harvest season boost
     var month=t.getMonth();
     var seasonal=1+(month>=2&&month<=4?0.4:month>=8&&month<=10?0.3:0);
     data.push({
@@ -1136,7 +1136,7 @@ function renderLineChart(){
   // Y-axis label (rotated)
   svg.append('text').attr('transform','rotate(-90)').attr('x',-(H-M.b+M.t)/2).attr('y',12).attr('text-anchor','middle').attr('font-size','9').attr('font-weight','600').attr('fill','var(--text-muted)').text('Volume (L)');
 
-  // Legend — bottom center, outside chart area
+  // Legend: bottom center, outside chart area
   var ly=H-16;
   var legend=svg.append('g').attr('transform','translate('+((M.l+W-M.r)/2-80)+','+ly+')');
   legend.append('line').attr('x1',0).attr('x2',14).attr('y1',0).attr('y2',0).attr('stroke','#7a1f3d').attr('stroke-width',2);

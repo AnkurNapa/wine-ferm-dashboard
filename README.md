@@ -1,8 +1,8 @@
-# Wine Fermentation Monitor — Dashboard
+# Wine Fermentation Monitor Dashboard
 
 A self-contained HTML dashboard showing winery vessel/fermentation status:
 tank cards with fill levels, stage, wine analysis (ABV, pH, SO₂, TA), smart
-alerts, active lots, and D3 packing/dispatch charts.
+alerts, active lots and D3 packing/dispatch charts.
 
 **Live page:** https://ankurnapa.github.io/wine-ferm-dashboard/
 
@@ -14,7 +14,7 @@ org via `odata()`; a public static page can't authenticate to that org, so this
 version ships with **baked-in synthetic sample data** (`_DEMO` in `index.html`).
 Everything renders with no login and no backend.
 
-It is designed to be embedded — for example as an iframe tile in a table/dashboard:
+It is designed to be embedded, for example as an iframe tile in a table/dashboard:
 
 ```html
 <iframe src="https://ankurnapa.github.io/wine-ferm-dashboard/"
@@ -23,7 +23,7 @@ It is designed to be embedded — for example as an iframe tile in a table/dashb
 
 ## Files
 
-- `index.html` — the entire dashboard (HTML + CSS + JS + sample data, single file)
+- `index.html`: the entire dashboard (HTML + CSS + JS + sample data, single file)
 
 ## Differences from the live Dynamics version
 
